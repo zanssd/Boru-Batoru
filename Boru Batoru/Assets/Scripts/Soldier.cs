@@ -1,0 +1,288 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Soldier : MonoBehaviour
+{
+    public bool isAttacking;
+    public bool isActive = false;
+    public Animator animatorSoldier;
+
+    [Header("ATTACK REF")]
+    [SerializeField]
+    private GameObject ball;
+    public bool hasBall = false;
+    public Transform goal;
+    public float attackerSpeed = 1.5f;
+    public float carryingSpeed = 0.75f;
+    public bool isCaught;
+
+
+    [Header("DEFENCE REF")]
+    [SerializeField]
+    private Vector3 spawnPos;
+    [SerializeField]
+    private float returnSpeed = 2f;
+    public float detectionRange;
+    public float defenderSpeed = 1f;
+
+    [SerializeField]
+    private LineRenderer detectionCircle;
+    [SerializeField]
+    private GameObject detectionComp;
+
+
+    private void Start()
+    {
+        if(!isAttacking)
+        {
+            SetDetectionRange();
+            CreateDetectionVisual();
+            this.tag = "Defender";
+            GameManager.Instance.defenderSoldiers.Add(this);
+            spawnPos = transform.position;
+        }
+        else
+        {
+            this.tag = "Attacker";
+            GameManager.Instance.attackSoldiers.Add(this);
+            detectionComp.SetActive(false);
+        }
+        StartCoroutine(ActivatedSoldier());
+    }
+
+    IEnumerator ActivatedSoldier()
+    {
+        yield return new WaitForSeconds(GameManager.Instance.spawnTime);
+        isActive = true;
+    }
+    public void CreateDetectionVisual()
+    {
+        detectionCircle.enabled = true;
+        detectionCircle.positionCount = 50;
+        detectionCircle.startWidth = 0.05f;
+        detectionCircle.endWidth = 0.05f;
+        detectionCircle.loop = true;
+        detectionCircle.material = new Material(Shader.Find("Sprites/Default"));
+        detectionCircle.startColor = Color.red;
+        detectionCircle.endColor = Color.red;
+        detectionCircle.useWorldSpace = false;
+
+        float angleStep = 360f / 50;
+        Vector3[] points = new Vector3[50];
+        for (int i = 0; i < 50; i++)
+        {
+            float angle = i * angleStep * Mathf.Deg2Rad;
+            points[i] = new Vector3(Mathf.Cos(angle) * detectionRange, 0, Mathf.Sin(angle) * detectionRange);
+        }
+        detectionCircle.SetPositions(points);
+        detectionCircle.transform.localScale = new Vector3(2.15f, 0, 2.15f);
+    }
+    private void SetDetectionRange()
+    {
+        GameObject field = GameManager.Instance.enemyField;
+        MeshCollider fieldCollider = field.GetComponent<MeshCollider>();
+        if (fieldCollider != null)
+        {
+            detectionRange = fieldCollider.bounds.size.x * 0.35f; // 35% dari lebar field
+        }
+    }
+    public void SetBallReference(GameObject ballRef)
+    {
+        ball = ballRef;
+    }
+
+    private void Update()
+    {
+        if (isCaught) return;
+        if(isActive)
+        {
+            if (isAttacking)
+            {
+                if (ball != null && !hasBall && GameManager.Instance.ballHolder == null)
+                {
+                    MoveToBall();
+                }
+                else
+                {
+                    MoveToGoal();
+                }
+            }
+            else
+            {
+                DetectAndChaseAttacker();
+            }
+        }
+      
+    }
+
+    private void MoveToBall()
+    {
+        animatorSoldier.SetBool("isRun", true);
+
+        if (Vector3.Distance(transform.position, ball.transform.position) > 0.3f)
+        {
+            Vector3 direction = (ball.transform.position - transform.position).normalized;
+            Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+        }
+
+        transform.position = Vector3.MoveTowards(transform.position, ball.transform.position, attackerSpeed * Time.deltaTime);
+
+        if (Vector3.Distance(transform.position, ball.transform.position) < 0.5f)
+        {
+            hasBall = true;
+            ball.transform.SetParent(transform);
+            ball.transform.localPosition = new Vector3(0, .151f, .464f);
+            GameManager.Instance.ballHolder = this.gameObject;
+        }
+    }
+
+
+    private void MoveToGoal()
+    {
+        animatorSoldier.SetBool("isRun", true);
+        transform.LookAt(new Vector3(goal.position.x, transform.position.y, goal.position.z));
+        if (!hasBall)
+        {
+
+            Vector3 goalPosition = new Vector3(transform.position.x, transform.position.y, goal.position.z);
+
+            transform.position = Vector3.MoveTowards(transform.position, goalPosition, attackerSpeed * Time.deltaTime);
+        }
+        else
+        {
+            transform.position = Vector3.MoveTowards(transform.position, goal.position, carryingSpeed * Time.deltaTime);
+        }
+     
+    }
+
+
+    private void DetectAndChaseAttacker()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRange);
+        foreach (Collider col in colliders)
+        {
+            Soldier attacker = col.GetComponent<Soldier>();
+            if (attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall)
+            {
+                if (detectionCircle.enabled) ShowDetectionArea(false);
+                animatorSoldier.SetBool("isRun", true);
+                transform.LookAt(new Vector3(attacker.transform.position.x, transform.position.y, attacker.transform.position.z));
+                transform.position = Vector3.MoveTowards(transform.position, col.transform.position, defenderSpeed * Time.deltaTime);
+            }
+        }
+    }
+
+    private void ShowDetectionArea(bool isShow)
+    {
+        detectionCircle.enabled = isShow;
+    }
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRange);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        //Defender Side
+        Soldier attacker = other.GetComponent<Soldier>();
+        if (!isAttacking && attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall)
+        {
+            StartCoroutine(DisableTemporarily(attacker, 2.5f));
+            StartCoroutine(DisableTemporarily(this, 4f));
+            //Debug.Break();
+            //GameManager.Instance.EndMatch();
+        }
+
+        //Attacker Side
+        if (isAttacking && attacker != null && attacker.CompareTag("Defender") && hasBall)
+        {
+            Soldier nearestAttacker = FindNearestAttacker();
+            if (nearestAttacker != null)
+            {
+                hasBall = false;
+                GameManager.Instance.ballHolder = null;
+                StartCoroutine(PassBall(ball, nearestAttacker));
+                StartCoroutine(DisableTemporarily(attacker, 4f));
+                StartCoroutine(DisableTemporarily(this, 2.5f));
+            }
+            else
+            {
+                Debug.Break();
+            }
+        }
+    }
+
+    private Soldier FindNearestAttacker()
+    {
+        Soldier nearest = null;
+        float minDistance = float.MaxValue;
+
+        foreach (Soldier soldier in GameManager.Instance.attackSoldiers)
+        {
+            if (soldier != this && !soldier.hasBall && !soldier.isCaught)
+            {
+                float distance = Vector3.Distance(transform.position, soldier.transform.position);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearest = soldier;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private IEnumerator PassBall(GameObject ball, Soldier targetPosition)
+    {
+        animatorSoldier.SetBool("isRun", false);
+        animatorSoldier.Play("Pass");
+        GameManager.Instance.ballHolder = null;
+        hasBall = false;
+        ball.transform.SetParent(null);
+        Vector3 direction = (targetPosition.transform.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+
+        float passSpeed = 1.5f;
+        Vector3 targetPos = targetPosition.transform.position + new Vector3(0, .151f, .464f);
+        while (GameManager.Instance.ballHolder == null)
+        {
+            ball.transform.position = Vector3.MoveTowards(ball.transform.position, targetPos, passSpeed * Time.deltaTime);
+            yield return null;
+        }
+    }
+
+    private IEnumerator DisableTemporarily(Soldier unit, float duration)
+    {
+        unit.animatorSoldier.SetBool("isRun", false);
+        if (!unit.isAttacking)
+        {
+            unit.animatorSoldier.SetBool("isRun", true);
+            StartCoroutine(unit.MoveToSpawn(unit.gameObject));
+        }
+        unit.isCaught = true;
+        yield return new WaitForSeconds(duration);
+        unit.isCaught = false;
+        if (!unit.isAttacking)
+        {
+            Debug.Log("NAME " + unit.gameObject.name);
+
+            unit.ShowDetectionArea(true);
+        }
+    }
+
+    public IEnumerator MoveToSpawn(GameObject unit)
+    {
+        while (Vector3.Distance(unit.transform.position, spawnPos) > 0.1f)
+        {
+            Debug.Log("RETURN");
+            transform.LookAt(new Vector3(spawnPos.x, transform.position.y, spawnPos.z));
+            unit.transform.position = Vector3.MoveTowards(unit.transform.position, spawnPos, returnSpeed * Time.deltaTime);
+            yield return null;
+        }
+        animatorSoldier.SetBool("isRun", false);
+    }
+}

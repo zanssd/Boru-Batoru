@@ -13,11 +13,15 @@ public class GameManager : MonoBehaviour
     public int maxEnergy = 6;
     public float energyRegenRate = 0.5f;
     public GameObject ballPrefab;
-    [SerializeField]
-    private bool isPlayerAttacking = true;
+    public bool isPlayerAttacking = true;
+    public float spawnTime;
 
     public GameObject playerField;
     public GameObject enemyField;
+    public GameObject ball;
+    public GameObject ballHolder;
+    public List<Soldier> attackSoldiers = new List<Soldier>();
+    public List<Soldier> defenderSoldiers = new List<Soldier>();
 
     private void Awake()
     {
@@ -70,17 +74,16 @@ public class GameManager : MonoBehaviour
     void SpawnBall()
     {
         GameObject field = isPlayerAttacking ? playerField : enemyField;
-
         MeshCollider meshCollider = field.GetComponent<MeshCollider>();
         Bounds bounds = meshCollider.bounds;
 
         Vector3 spawnPosition = new Vector3(
-         Random.Range(bounds.min.x, bounds.max.x),
-         0.192f,
-         Random.Range(bounds.min.z, bounds.max.z)
+            Random.Range(bounds.min.x, bounds.max.x),
+            .151f,
+            Random.Range(bounds.min.z, bounds.max.z)
         );
 
-        GameObject ballObj = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
-        ballObj.tag = "Ball";
+        ball = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
+        ball.tag = "Ball";
     }
 }

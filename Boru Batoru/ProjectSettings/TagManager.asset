@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ball
+  - EnemyBase
+  - PlayerBase
+  - EnemyArea
+  - PlayerArea
+  - Attacker
+  - Defender
   layers:
   - Default
   - TransparentFX

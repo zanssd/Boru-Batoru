@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2917301290452676401}
   - component: {fileID: 2293332235320254612}
   - component: {fileID: 4050841413349774430}
+  - component: {fileID: 7126073339936407127}
   m_Layer: 0
   m_Name: Ball
   m_TagString: Ball
@@ -80,3 +81,16 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!65 &7126073339936407127
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2537645064214558091}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.0068630623, y: 0.006863877, z: 0.006864798}
+  m_Center: {x: 0, y: 0, z: 0}
