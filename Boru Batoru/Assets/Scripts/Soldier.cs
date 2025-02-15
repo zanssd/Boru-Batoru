@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Soldier : MonoBehaviour
 {
+    public bool isPlayer;
     public bool isAttacking;
     public bool isActive = false;
     public Animator animatorSoldier;
@@ -34,7 +35,7 @@ public class Soldier : MonoBehaviour
 
     private void Start()
     {
-        if(!isAttacking)
+        if (!isAttacking)
         {
             SetDetectionRange();
             CreateDetectionVisual();
@@ -95,7 +96,7 @@ public class Soldier : MonoBehaviour
     private void Update()
     {
         if (isCaught) return;
-        if(isActive)
+        if (isActive)
         {
             if (isAttacking)
             {
@@ -113,7 +114,7 @@ public class Soldier : MonoBehaviour
                 DetectAndChaseAttacker();
             }
         }
-      
+
     }
 
     private void MoveToBall()
@@ -138,7 +139,6 @@ public class Soldier : MonoBehaviour
         }
     }
 
-
     private void MoveToGoal()
     {
         animatorSoldier.SetBool("isRun", true);
@@ -154,10 +154,8 @@ public class Soldier : MonoBehaviour
         {
             transform.position = Vector3.MoveTowards(transform.position, goal.position, carryingSpeed * Time.deltaTime);
         }
-     
+
     }
-
-
     private void DetectAndChaseAttacker()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRange);
@@ -178,17 +176,23 @@ public class Soldier : MonoBehaviour
     {
         detectionCircle.enabled = isShow;
     }
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawWireSphere(transform.position, detectionRange);
+    //}
 
     private void OnTriggerEnter(Collider other)
     {
+        if ((isPlayer && other.CompareTag("EnemyFence")) || (isPlayer && other.CompareTag("EnemyBase")) || (!isPlayer && other.CompareTag("PlayerFence")) || (!isPlayer && other.CompareTag("PlayerBase")))
+        {
+            isCaught = true;
+            FallAndDestroy();
+        }
+
         //Defender Side
         Soldier attacker = other.GetComponent<Soldier>();
-        if (!isAttacking && attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall)
+        if (!isAttacking && attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall && !attacker.isCaught)
         {
             StartCoroutine(DisableTemporarily(attacker, 2.5f));
             StartCoroutine(DisableTemporarily(this, 4f));
@@ -197,7 +201,7 @@ public class Soldier : MonoBehaviour
         }
 
         //Attacker Side
-        if (isAttacking && attacker != null && attacker.CompareTag("Defender") && hasBall)
+        if (isAttacking && attacker != null && attacker.CompareTag("Defender") && hasBall && !attacker.isCaught)
         {
             Soldier nearestAttacker = FindNearestAttacker();
             if (nearestAttacker != null)
@@ -212,6 +216,12 @@ public class Soldier : MonoBehaviour
             {
                 Debug.Break();
             }
+        }
+
+        if (hasBall && other.CompareTag("EnemyBase"))
+        {
+            Debug.Log("GOAL! Game Over.");
+            //Debug.Break();
         }
     }
 
@@ -284,5 +294,13 @@ public class Soldier : MonoBehaviour
             yield return null;
         }
         animatorSoldier.SetBool("isRun", false);
+    }
+
+    private void FallAndDestroy()
+    {
+        animatorSoldier.SetBool("isRun", false);
+        Debug.Log(gameObject.name + " hit the fence!");
+        animatorSoldier.Play("Fall");
+        Destroy(gameObject,3.2f);
     }
 }

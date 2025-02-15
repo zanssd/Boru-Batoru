@@ -11,6 +11,8 @@ TagManager:
   - PlayerArea
   - Attacker
   - Defender
+  - EnemyFence
+  - PlayerFence
   layers:
   - Default
   - TransparentFX

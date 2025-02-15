@@ -9,7 +9,8 @@ public class GameManager : MonoBehaviour
     private float timer;
     public int playerWins = 0;
     public int enemyWins = 0;
-    public int energy = 0;
+    public int playerEnergy = 0;
+    public int enemyEnergy = 0;
     public int maxEnergy = 6;
     public float energyRegenRate = 0.5f;
     public GameObject ballPrefab;
@@ -20,6 +21,7 @@ public class GameManager : MonoBehaviour
     public GameObject enemyField;
     public GameObject ball;
     public GameObject ballHolder;
+    public Transform spawnedComps;
     public List<Soldier> attackSoldiers = new List<Soldier>();
     public List<Soldier> defenderSoldiers = new List<Soldier>();
 
@@ -51,10 +53,8 @@ public class GameManager : MonoBehaviour
     {
         while (true)
         {
-            if (energy < maxEnergy)
-            {
-                energy++;
-            }
+            if (playerEnergy < maxEnergy) playerEnergy++;
+            if (enemyEnergy < maxEnergy) enemyEnergy++;
             yield return new WaitForSeconds(1f / energyRegenRate);
         }
     }
@@ -84,6 +84,7 @@ public class GameManager : MonoBehaviour
         );
 
         ball = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
+        ball.transform.SetParent(spawnedComps);
         ball.tag = "Ball";
     }
 }

@@ -36,15 +36,31 @@ public class SpawnManager : MonoBehaviour
 
     void SpawnSoldier(Vector3 spawnPosition, bool isPlayer)
     {
+        int cost = isPlayer ? 2 : 3; // Cost: Attacker = 2, Defender = 3
+        int currentEnergy = isPlayer ? GameManager.Instance.playerEnergy : GameManager.Instance.enemyEnergy;
+
+        // Cek apakah cukup energi untuk spawn
+        if (currentEnergy < cost) return;
+
+        // Kurangi energi
+        if (isPlayer)
+            GameManager.Instance.playerEnergy -= cost;
+        else
+            GameManager.Instance.enemyEnergy -= cost;
+
+        // Spawn soldier
         GameObject soldierPrefab = isPlayer ? playerSoldierPrefab : enemySoldierPrefab;
         Quaternion spawnRotation = isPlayer ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
         GameObject soldier = Instantiate(soldierPrefab, spawnPosition, spawnRotation);
+        soldier.transform.SetParent(GameManager.Instance.spawnedComps);
         Soldier soldierScript = soldier.GetComponent<Soldier>();
         soldierScript.animatorSoldier.Play("Spawn");
+        soldierScript.isPlayer = isPlayer;
         soldierScript.isAttacking = isPlayer ? GameManager.Instance.isPlayerAttacking : !GameManager.Instance.isPlayerAttacking;
         soldierScript.SetBallReference(GameManager.Instance.ball);
         soldierScript.goal = GameObject.FindGameObjectWithTag(isPlayer ? "EnemyBase" : "PlayerBase").transform;
     }
+
 
     IEnumerator EnemyAISpawn()
     {
