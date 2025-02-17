@@ -6,16 +6,17 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
     public float matchTime = 140f;
-    private float timer;
+    public float timer;
     public int playerWins = 0;
     public int enemyWins = 0;
-    public int playerEnergy = 0;
-    public int enemyEnergy = 0;
+    public float currentPlayerEnergy = 0;
+    public float currentEnemyEnergy = 0;
     public int maxEnergy = 6;
     public float energyRegenRate = 0.5f;
     public GameObject ballPrefab;
     public bool isPlayerAttacking = true;
     public float spawnTime;
+    public bool isStart;
 
     public GameObject playerField;
     public GameObject enemyField;
@@ -24,6 +25,8 @@ public class GameManager : MonoBehaviour
     public Transform spawnedComps;
     public List<Soldier> attackSoldiers = new List<Soldier>();
     public List<Soldier> defenderSoldiers = new List<Soldier>();
+    public List<EnergyBar> enemyEnergy = new List<EnergyBar>();
+    public List<EnergyBar> playerEnergy = new List<EnergyBar>();
 
     private void Awake()
     {
@@ -35,31 +38,56 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        //MatchBegin();
+    }
+
+    public void MatchBegin()
+    {
+        currentPlayerEnergy = 0;
+        currentEnemyEnergy = 0;
+        UpdateEnergyBar(enemyEnergy, 0);
+        UpdateEnergyBar(playerEnergy, 0);
         StartCoroutine(RegenerateEnergy());
         timer = matchTime;
         SpawnBall();
+        isStart = true;
     }
 
-    private void Update()
+    public void MatchEnd()
     {
-        timer -= Time.deltaTime;
-        if (timer <= 0)
-        {
-            EndMatch();
-        }
+        currentPlayerEnergy = 0;
+        currentEnemyEnergy = 0;
+        UpdateEnergyBar(enemyEnergy, 0);
+        UpdateEnergyBar(playerEnergy, 0);
+        StartCoroutine(RegenerateEnergy());
+        timer = matchTime;
+        SpawnBall();
+        isStart = true;
     }
+
 
     IEnumerator RegenerateEnergy()
     {
         while (true)
         {
-            if (playerEnergy < maxEnergy) playerEnergy++;
-            if (enemyEnergy < maxEnergy) enemyEnergy++;
-            yield return new WaitForSeconds(1f / energyRegenRate);
+            if (currentPlayerEnergy < maxEnergy)
+            {
+                currentPlayerEnergy += .5f * Time.deltaTime;
+                UpdateEnergyBar(playerEnergy, currentPlayerEnergy);
+            }
+        
+            if (currentEnemyEnergy < maxEnergy)
+            {
+                currentEnemyEnergy += .5f * Time.deltaTime;
+                UpdateEnergyBar(enemyEnergy, currentEnemyEnergy);
+            }
+
+            yield return null; // Menggunakan frame update untuk kelancaran pengisian
         }
     }
 
-    void EndMatch()
+
+    public void EndMatch()
     {
         Debug.Log("Match Ended");
         // Implementasi logika menang/kalah
@@ -87,4 +115,16 @@ public class GameManager : MonoBehaviour
         ball.transform.SetParent(spawnedComps);
         ball.tag = "Ball";
     }
+
+    void UpdateEnergyBar(List<EnergyBar> barUnits, float energyLevel)
+    {
+        int filledUnits = Mathf.FloorToInt(energyLevel);
+        float remainingFill = energyLevel - filledUnits;
+
+        for (int i = 0; i < barUnits.Count; i++)
+        {
+            barUnits[i].UpdateBar(i < filledUnits ? 1 : (i == filledUnits ? remainingFill : 0));
+        }
+    }
+
 }

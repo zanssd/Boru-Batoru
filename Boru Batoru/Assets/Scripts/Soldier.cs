@@ -8,6 +8,8 @@ public class Soldier : MonoBehaviour
     public bool isAttacking;
     public bool isActive = false;
     public Animator animatorSoldier;
+    public FadeToGray fadeToGray;
+    public GameObject directionIndicator;
 
     [Header("ATTACK REF")]
     [SerializeField]
@@ -17,6 +19,7 @@ public class Soldier : MonoBehaviour
     public float attackerSpeed = 1.5f;
     public float carryingSpeed = 0.75f;
     public bool isCaught;
+    public GameObject ballHighlight;
 
 
     [Header("DEFENCE REF")]
@@ -26,6 +29,7 @@ public class Soldier : MonoBehaviour
     private float returnSpeed = 2f;
     public float detectionRange;
     public float defenderSpeed = 1f;
+    public bool isRun;
 
     [SerializeField]
     private LineRenderer detectionCircle;
@@ -120,7 +124,7 @@ public class Soldier : MonoBehaviour
     private void MoveToBall()
     {
         animatorSoldier.SetBool("isRun", true);
-
+        directionIndicator.SetActive(true);
         if (Vector3.Distance(transform.position, ball.transform.position) > 0.3f)
         {
             Vector3 direction = (ball.transform.position - transform.position).normalized;
@@ -137,6 +141,8 @@ public class Soldier : MonoBehaviour
             ball.transform.localPosition = new Vector3(0, .151f, .464f);
             GameManager.Instance.ballHolder = this.gameObject;
         }
+        //directionIndicator.transform.rotation = Quaternion.LookRotation(transform.forward);
+
     }
 
     private void MoveToGoal()
@@ -153,7 +159,10 @@ public class Soldier : MonoBehaviour
         else
         {
             transform.position = Vector3.MoveTowards(transform.position, goal.position, carryingSpeed * Time.deltaTime);
+            ballHighlight.SetActive(true);
         }
+        directionIndicator.SetActive(true);
+        //directionIndicator.transform.rotation = Quaternion.LookRotation(transform.forward);
 
     }
     private void DetectAndChaseAttacker()
@@ -164,10 +173,15 @@ public class Soldier : MonoBehaviour
             Soldier attacker = col.GetComponent<Soldier>();
             if (attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall)
             {
+                if (attacker.isCaught) return;
                 if (detectionCircle.enabled) ShowDetectionArea(false);
+                animatorSoldier.Play("Run");
                 animatorSoldier.SetBool("isRun", true);
                 transform.LookAt(new Vector3(attacker.transform.position.x, transform.position.y, attacker.transform.position.z));
                 transform.position = Vector3.MoveTowards(transform.position, col.transform.position, defenderSpeed * Time.deltaTime);
+                directionIndicator.SetActive(true);
+                isRun = true;
+                //directionIndicator.transform.rotation = Quaternion.LookRotation(transform.forward);
             }
         }
     }
@@ -176,11 +190,6 @@ public class Soldier : MonoBehaviour
     {
         detectionCircle.enabled = isShow;
     }
-    //private void OnDrawGizmos()
-    //{
-    //    Gizmos.color = Color.red;
-    //    Gizmos.DrawWireSphere(transform.position, detectionRange);
-    //}
 
     private void OnTriggerEnter(Collider other)
     {
@@ -192,16 +201,35 @@ public class Soldier : MonoBehaviour
 
         //Defender Side
         Soldier attacker = other.GetComponent<Soldier>();
-        if (!isAttacking && attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall && !attacker.isCaught)
+        if (!isAttacking && attacker != null && attacker.CompareTag("Attacker") && attacker.hasBall && !attacker.isCaught && !isCaught)
         {
             StartCoroutine(DisableTemporarily(attacker, 2.5f));
             StartCoroutine(DisableTemporarily(this, 4f));
-            //Debug.Break();
-            //GameManager.Instance.EndMatch();
+            Soldier nearestAttacker = attacker.FindNearestAttacker();
+
+            if (nearestAttacker != null)
+            {
+                hasBall = false;
+                GameManager.Instance.ballHolder = null;
+                StartCoroutine(attacker.PassBall(ball, nearestAttacker));
+            }
+            else
+            {
+                Debug.Break();
+            }
+
+            foreach (Soldier defender in GameManager.Instance.defenderSoldiers)
+            {
+                if (defender.isRun)
+                {
+                    defender.isRun = false;
+                    StartCoroutine(defender.DisableTemporarily(defender,4f));
+                }
+            }
         }
 
         //Attacker Side
-        if (isAttacking && attacker != null && attacker.CompareTag("Defender") && hasBall && !attacker.isCaught)
+        if (isAttacking && attacker != null && attacker.CompareTag("Defender") && hasBall && !attacker.isCaught && !isCaught)
         {
             Soldier nearestAttacker = FindNearestAttacker();
             if (nearestAttacker != null)
@@ -211,6 +239,15 @@ public class Soldier : MonoBehaviour
                 StartCoroutine(PassBall(ball, nearestAttacker));
                 StartCoroutine(DisableTemporarily(attacker, 4f));
                 StartCoroutine(DisableTemporarily(this, 2.5f));
+
+                foreach (Soldier defender in GameManager.Instance.defenderSoldiers)
+                {
+                    if (defender.isRun)
+                    {
+                        defender.isRun = false;
+                        StartCoroutine(defender.DisableTemporarily(defender, 4f));
+                    }
+                }
             }
             else
             {
@@ -221,9 +258,29 @@ public class Soldier : MonoBehaviour
         if (hasBall && other.CompareTag("EnemyBase"))
         {
             Debug.Log("GOAL! Game Over.");
-            //Debug.Break();
+            //GameManager.Instance.MatchEnd
         }
     }
+
+    //private Soldier FindNearestAttacker()
+    //{
+    //    Soldier nearest = null;
+    //    float minDistance = float.MaxValue;
+
+    //    foreach (Soldier soldier in GameManager.Instance.attackSoldiers)
+    //    {
+    //        if (soldier != this && !soldier.hasBall && !soldier.isCaught)
+    //        {
+    //            float distance = Vector3.Distance(transform.position, soldier.transform.position);
+    //            if (distance < minDistance)
+    //            {
+    //                minDistance = distance;
+    //                nearest = soldier;
+    //            }
+    //        }
+    //    }
+    //    return nearest;
+    //}
 
     private Soldier FindNearestAttacker()
     {
@@ -232,7 +289,7 @@ public class Soldier : MonoBehaviour
 
         foreach (Soldier soldier in GameManager.Instance.attackSoldiers)
         {
-            if (soldier != this && !soldier.hasBall && !soldier.isCaught)
+            if (soldier != this && !soldier.hasBall && !soldier.isCaught && soldier.isActive)
             {
                 float distance = Vector3.Distance(transform.position, soldier.transform.position);
                 if (distance < minDistance)
@@ -242,10 +299,21 @@ public class Soldier : MonoBehaviour
                 }
             }
         }
+
+        if (nearest != null)
+        {
+            Debug.Log("Found nearest attacker: " + nearest.gameObject.name);
+        }
+        else
+        {
+            Debug.Log("No available attacker to pass the ball.");
+        }
+
         return nearest;
     }
 
-    private IEnumerator PassBall(GameObject ball, Soldier targetPosition)
+
+    public IEnumerator PassBall(GameObject ball, Soldier targetPosition)
     {
         animatorSoldier.SetBool("isRun", false);
         animatorSoldier.Play("Pass");
@@ -265,9 +333,12 @@ public class Soldier : MonoBehaviour
         }
     }
 
-    private IEnumerator DisableTemporarily(Soldier unit, float duration)
+    public IEnumerator DisableTemporarily(Soldier unit, float duration)
     {
+        unit.fadeToGray.ChangeToGray();
         unit.animatorSoldier.SetBool("isRun", false);
+        unit.directionIndicator.SetActive(false);
+        unit.ballHighlight.SetActive(false);
         if (!unit.isAttacking)
         {
             unit.animatorSoldier.SetBool("isRun", true);
@@ -276,10 +347,9 @@ public class Soldier : MonoBehaviour
         unit.isCaught = true;
         yield return new WaitForSeconds(duration);
         unit.isCaught = false;
+        unit.fadeToGray.RestoreOriginalMaterials();
         if (!unit.isAttacking)
         {
-            Debug.Log("NAME " + unit.gameObject.name);
-
             unit.ShowDetectionArea(true);
         }
     }
@@ -288,7 +358,7 @@ public class Soldier : MonoBehaviour
     {
         while (Vector3.Distance(unit.transform.position, spawnPos) > 0.1f)
         {
-            Debug.Log("RETURN");
+            //Debug.Log("RETURN");
             transform.LookAt(new Vector3(spawnPos.x, transform.position.y, spawnPos.z));
             unit.transform.position = Vector3.MoveTowards(unit.transform.position, spawnPos, returnSpeed * Time.deltaTime);
             yield return null;
@@ -299,7 +369,7 @@ public class Soldier : MonoBehaviour
     private void FallAndDestroy()
     {
         animatorSoldier.SetBool("isRun", false);
-        Debug.Log(gameObject.name + " hit the fence!");
+        //Debug.Log(gameObject.name + " hit the fence!");
         animatorSoldier.Play("Fall");
         Destroy(gameObject,3.2f);
     }

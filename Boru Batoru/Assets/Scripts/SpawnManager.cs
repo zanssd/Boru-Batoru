@@ -12,7 +12,7 @@ public class SpawnManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(EnemyAISpawn()); // Memulai AI spawn enemy secara otomatis
+        //StartCoroutine(EnemyAISpawn()); // Memulai AI spawn enemy secara otomatis
     }
 
     // Update is called once per frame
@@ -29,6 +29,11 @@ public class SpawnManager : MonoBehaviour
                 {
                     SpawnSoldier(hit.point, true);
                 }
+
+                if (hit.collider.gameObject == GameManager.Instance.enemyField)
+                {
+                    SpawnSoldier(hit.point, false);
+                }
             }
         }
     }
@@ -37,16 +42,16 @@ public class SpawnManager : MonoBehaviour
     void SpawnSoldier(Vector3 spawnPosition, bool isPlayer)
     {
         int cost = isPlayer ? 2 : 3; // Cost: Attacker = 2, Defender = 3
-        int currentEnergy = isPlayer ? GameManager.Instance.playerEnergy : GameManager.Instance.enemyEnergy;
+        float currentEnergy = isPlayer ? GameManager.Instance.currentPlayerEnergy : GameManager.Instance.currentEnemyEnergy;
 
         // Cek apakah cukup energi untuk spawn
         if (currentEnergy < cost) return;
 
         // Kurangi energi
         if (isPlayer)
-            GameManager.Instance.playerEnergy -= cost;
+            GameManager.Instance.currentPlayerEnergy -= cost;
         else
-            GameManager.Instance.enemyEnergy -= cost;
+            GameManager.Instance.currentEnemyEnergy -= cost;
 
         // Spawn soldier
         GameObject soldierPrefab = isPlayer ? playerSoldierPrefab : enemySoldierPrefab;
