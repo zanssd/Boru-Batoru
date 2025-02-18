@@ -12,6 +12,11 @@ public class UIManager : MonoBehaviour
     private TMP_Text countdownText;
     [SerializeField]
     private GameObject countdownObj;
+    public TMP_Text resultMatchText;
+    public TMP_Text resultEnemyScoreText;
+    public TMP_Text resultPlayerScoreText;
+    public GameObject resultObj;
+    public GameObject nextMatchBtnObj;
 
     [Header("Enemy UI Ref")]
     public TMP_Text enemyTitle;
@@ -23,11 +28,11 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        DefineTitle();
+        //DefineTitle();
         StartCoroutine(CountdownRoutine());
     }
 
-    void DefineTitle()
+    public void DefineTitle()
     {
         enemyTitle.text = !GameManager.Instance.isPlayerAttacking ? "Enemy - AI Attacker" : "Enemy - AI Defender";
         playerTitle.text = !GameManager.Instance.isPlayerAttacking ? "Player (Defender)" : "Player (Attacker)";
@@ -42,7 +47,7 @@ public class UIManager : MonoBehaviour
 
         if (GameManager.Instance.timer <= 0)
         {
-            GameManager.Instance.EndMatch();
+            GameManager.Instance.MatchEnd("draw");
         }
     }
 
@@ -56,4 +61,34 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.MatchBegin();
         countdownObj.SetActive(false); // Sembunyikan setelah selesai
     }
+
+    public void ShowResult(string result)
+    {
+        resultObj.SetActive(true);
+        resultEnemyScoreText.text = GameManager.Instance.enemyWins.ToString();
+        resultPlayerScoreText.text = GameManager.Instance.playerWins.ToString();
+        enemyScore.text = resultEnemyScoreText.text;
+        playerScore.text = resultPlayerScoreText.text;
+        switch (result)
+        {
+            case "attacker":
+                resultMatchText.text = "Attacker Won";
+                break;
+            case "defender":
+                resultMatchText.text = "Defender Won";
+                break;
+            case "draw":
+                resultMatchText.text = "Draw";
+                break;
+        }
+
+        if (GameManager.Instance.roundMatch == 5)
+        {
+            nextMatchBtnObj.SetActive(false);
+            resultMatchText.text = (GameManager.Instance.playerWins == GameManager.Instance.enemyWins)
+                ? "DRAW"
+                : (GameManager.Instance.playerWins > GameManager.Instance.enemyWins) ? "PLAYER WINNER" : "ENEMY WINNER";
+        }
+    }
+
 }

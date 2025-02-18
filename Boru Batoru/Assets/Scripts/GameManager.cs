@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    public UIManager uiManager;
     public float matchTime = 140f;
     public float timer;
     public int playerWins = 0;
@@ -14,9 +15,10 @@ public class GameManager : MonoBehaviour
     public int maxEnergy = 6;
     public float energyRegenRate = 0.5f;
     public GameObject ballPrefab;
-    public bool isPlayerAttacking = true;
+    public bool isPlayerAttacking = false;
     public float spawnTime;
     public bool isStart;
+    public int roundMatch;
 
     public GameObject playerField;
     public GameObject enemyField;
@@ -43,27 +45,52 @@ public class GameManager : MonoBehaviour
 
     public void MatchBegin()
     {
+        attackSoldiers = new List<Soldier>();
+        defenderSoldiers = new List<Soldier>();
+        DestroyComp();
         currentPlayerEnergy = 0;
         currentEnemyEnergy = 0;
         UpdateEnergyBar(enemyEnergy, 0);
         UpdateEnergyBar(playerEnergy, 0);
         StartCoroutine(RegenerateEnergy());
         timer = matchTime;
-        SpawnBall();
         isStart = true;
+        uiManager.DefineTitle();
+        SpawnBall();
+    }
+    void DestroyComp()
+    {
+        foreach (Transform child in spawnedComps)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+    public void MatchEnd(string result)
+    {
+        if (!isStart) return;
+        isStart = false;
+
+        switch (result)
+        {
+            case "attacker":
+                if (isPlayerAttacking) playerWins++;  
+                else enemyWins++;  
+                break;
+
+            case "defender":
+                if (isPlayerAttacking) enemyWins++;  
+                else playerWins++;  
+                break;
+
+            case "draw":
+                Debug.Log("DRAW");
+                break;
+        }
+
+        StopAllCoroutines();
+        uiManager.ShowResult(result);
     }
 
-    public void MatchEnd()
-    {
-        currentPlayerEnergy = 0;
-        currentEnemyEnergy = 0;
-        UpdateEnergyBar(enemyEnergy, 0);
-        UpdateEnergyBar(playerEnergy, 0);
-        StartCoroutine(RegenerateEnergy());
-        timer = matchTime;
-        SpawnBall();
-        isStart = true;
-    }
 
 
     IEnumerator RegenerateEnergy()
@@ -95,8 +122,9 @@ public class GameManager : MonoBehaviour
 
     public void SwitchTurn()
     {
+        roundMatch++;
         isPlayerAttacking = !isPlayerAttacking;
-        SpawnBall();
+        MatchBegin();
     }
 
     void SpawnBall()

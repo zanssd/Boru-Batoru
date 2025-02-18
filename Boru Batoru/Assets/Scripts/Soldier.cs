@@ -81,7 +81,10 @@ public class Soldier : MonoBehaviour
             points[i] = new Vector3(Mathf.Cos(angle) * detectionRange, 0, Mathf.Sin(angle) * detectionRange);
         }
         detectionCircle.SetPositions(points);
-        detectionCircle.transform.localScale = new Vector3(2.15f, 0, 2.15f);
+        if (GameManager.Instance.isPlayerAttacking)
+        {
+            detectionCircle.transform.localScale = new Vector3(2.15f, 0, 2.15f);
+        }
     }
     private void SetDetectionRange()
     {
@@ -99,7 +102,7 @@ public class Soldier : MonoBehaviour
 
     private void Update()
     {
-        if (isCaught) return;
+        if (!GameManager.Instance.isStart || isCaught) return;
         if (isActive)
         {
             if (isAttacking)
@@ -215,7 +218,7 @@ public class Soldier : MonoBehaviour
             }
             else
             {
-                Debug.Break();
+                GameManager.Instance.MatchEnd("defender");
             }
 
             foreach (Soldier defender in GameManager.Instance.defenderSoldiers)
@@ -232,13 +235,14 @@ public class Soldier : MonoBehaviour
         if (isAttacking && attacker != null && attacker.CompareTag("Defender") && hasBall && !attacker.isCaught && !isCaught)
         {
             Soldier nearestAttacker = FindNearestAttacker();
+            StartCoroutine(DisableTemporarily(attacker, 4f));
+            StartCoroutine(DisableTemporarily(this, 2.5f));
             if (nearestAttacker != null)
             {
                 hasBall = false;
                 GameManager.Instance.ballHolder = null;
                 StartCoroutine(PassBall(ball, nearestAttacker));
-                StartCoroutine(DisableTemporarily(attacker, 4f));
-                StartCoroutine(DisableTemporarily(this, 2.5f));
+                
 
                 foreach (Soldier defender in GameManager.Instance.defenderSoldiers)
                 {
@@ -251,15 +255,25 @@ public class Soldier : MonoBehaviour
             }
             else
             {
-                Debug.Break();
+                GameManager.Instance.MatchEnd("defender");
             }
         }
 
-        if (hasBall && other.CompareTag("EnemyBase"))
+        if (hasBall && other.CompareTag("EnemyBase") || hasBall && other.CompareTag("PlayerBase"))
         {
             Debug.Log("GOAL! Game Over.");
             //GameManager.Instance.MatchEnd
+            GameManager.Instance.MatchEnd("attacker");
+
         }
+
+
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRange);
     }
 
     //private Soldier FindNearestAttacker()
@@ -319,7 +333,7 @@ public class Soldier : MonoBehaviour
         animatorSoldier.Play("Pass");
         GameManager.Instance.ballHolder = null;
         hasBall = false;
-        ball.transform.SetParent(null);
+        ball.transform.SetParent(GameManager.Instance.spawnedComps);
         Vector3 direction = (targetPosition.transform.position - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);

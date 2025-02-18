@@ -18,6 +18,7 @@ public class SpawnManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GameManager.Instance.isStart) return;
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
@@ -41,19 +42,16 @@ public class SpawnManager : MonoBehaviour
 
     void SpawnSoldier(Vector3 spawnPosition, bool isPlayer)
     {
-        int cost = isPlayer ? 2 : 3; // Cost: Attacker = 2, Defender = 3
+        int cost = isPlayer ? (GameManager.Instance.isPlayerAttacking ? 2 : 3) : (GameManager.Instance.isPlayerAttacking ? 3 : 2);
         float currentEnergy = isPlayer ? GameManager.Instance.currentPlayerEnergy : GameManager.Instance.currentEnemyEnergy;
 
-        // Cek apakah cukup energi untuk spawn
         if (currentEnergy < cost) return;
 
-        // Kurangi energi
         if (isPlayer)
             GameManager.Instance.currentPlayerEnergy -= cost;
         else
             GameManager.Instance.currentEnemyEnergy -= cost;
 
-        // Spawn soldier
         GameObject soldierPrefab = isPlayer ? playerSoldierPrefab : enemySoldierPrefab;
         Quaternion spawnRotation = isPlayer ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
         GameObject soldier = Instantiate(soldierPrefab, spawnPosition, spawnRotation);
