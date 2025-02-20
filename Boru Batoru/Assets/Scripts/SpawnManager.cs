@@ -9,11 +9,8 @@ public class SpawnManager : MonoBehaviour
     private GameObject playerSoldierPrefab;
     [SerializeField]
     private GameObject enemySoldierPrefab;
-    // Start is called before the first frame update
-    void Start()
-    {
-        //StartCoroutine(EnemyAISpawn()); // Memulai AI spawn enemy secara otomatis
-    }
+
+  
 
     // Update is called once per frame
     void Update()
@@ -22,6 +19,8 @@ public class SpawnManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
+            Debug.Log("CAMERA " + Camera.main.name);
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
             if (Physics.Raycast(ray, out hit))
@@ -34,6 +33,7 @@ public class SpawnManager : MonoBehaviour
                 if (hit.collider.gameObject == GameManager.Instance.enemyField)
                 {
                     SpawnSoldier(hit.point, false);
+
                 }
             }
         }
@@ -64,15 +64,6 @@ public class SpawnManager : MonoBehaviour
         soldierScript.goal = GameObject.FindGameObjectWithTag(isPlayer ? "EnemyBase" : "PlayerBase").transform;
     }
 
-
-    IEnumerator EnemyAISpawn()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(Random.Range(2f, 5f)); // Waktu random untuk spawn
-            SpawnSoldier(GetRandomEnemyPosition(), false);
-        }
-    }
 
     Vector3 GetRandomEnemyPosition()
     {

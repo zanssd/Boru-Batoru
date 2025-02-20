@@ -265,31 +265,6 @@ public class Soldier : MonoBehaviour
 
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
-    }
-
-    //private Soldier FindNearestAttacker()
-    //{
-    //    Soldier nearest = null;
-    //    float minDistance = float.MaxValue;
-
-    //    foreach (Soldier soldier in GameManager.Instance.attackSoldiers)
-    //    {
-    //        if (soldier != this && !soldier.hasBall && !soldier.isCaught)
-    //        {
-    //            float distance = Vector3.Distance(transform.position, soldier.transform.position);
-    //            if (distance < minDistance)
-    //            {
-    //                minDistance = distance;
-    //                nearest = soldier;
-    //            }
-    //        }
-    //    }
-    //    return nearest;
-    //}
 
     private Soldier FindNearestAttacker()
     {

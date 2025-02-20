@@ -30,10 +30,12 @@ public class UIManager : MonoBehaviour
 
     [Header("Penalty Reference")]
     public GameObject penaltyBtn;
+
+    public TMP_Text logTxt;
     private void Start()
     {
         //DefineTitle();
-        StartCoroutine(CountdownRoutine());
+        if(!GameManager.Instance.isAR) StartCoroutine(CountdownRoutine());
     }
 
     public void DefineTitle()
@@ -63,13 +65,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    IEnumerator CountdownRoutine()
+    public IEnumerator CountdownRoutine()
     {
         for (int i = 3; i >= 0; i--)
         {
             countdownText.text = i > 0 ? i.ToString() : "GO!";
             yield return new WaitForSeconds(1f);
         }
+
         GameManager.Instance.MatchBegin();
         countdownObj.SetActive(false);
     }
@@ -109,6 +112,7 @@ public class UIManager : MonoBehaviour
             }
         }
     }
+
 
     public void MoveScene(string scene)
     {

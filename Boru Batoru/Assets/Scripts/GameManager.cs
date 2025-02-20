@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     public bool isStart;
     public bool isPenalty;
     public int roundMatch;
+    public bool isAR;
 
     public GameObject playerField;
     public GameObject enemyField;
@@ -49,6 +50,8 @@ public class GameManager : MonoBehaviour
 
     public void MatchBegin()
     {
+        playerField = GameObject.FindGameObjectWithTag("PlayerArea");
+        enemyField = GameObject.FindGameObjectWithTag("EnemyArea");
         attackSoldiers = new List<Soldier>();
         defenderSoldiers = new List<Soldier>();
         DestroyComp();
@@ -113,15 +116,8 @@ public class GameManager : MonoBehaviour
                 UpdateEnergyBar(enemyEnergy, currentEnemyEnergy);
             }
 
-            yield return null; // Menggunakan frame update untuk kelancaran pengisian
+            yield return null; 
         }
-    }
-
-
-    public void EndMatch()
-    {
-        Debug.Log("Match Ended");
-        // Implementasi logika menang/kalah
     }
 
     public void SwitchTurn()
@@ -136,12 +132,26 @@ public class GameManager : MonoBehaviour
         GameObject field = isPlayerAttacking ? playerField : enemyField;
         MeshCollider meshCollider = field.GetComponent<MeshCollider>();
         Bounds bounds = meshCollider.bounds;
+        Vector3 spawnPosition;
+        if (isAR)
+        {
 
-        Vector3 spawnPosition = new Vector3(
-            Random.Range(bounds.min.x, bounds.max.x),
-            .151f,
-            Random.Range(bounds.min.z, bounds.max.z)
-        );
+            spawnPosition = new Vector3(
+                Random.Range(bounds.min.x, bounds.max.x),
+                field.transform.position.y + .151f,
+                Random.Range(bounds.min.z, bounds.max.z)
+            );
+
+        }
+        else
+        {
+            spawnPosition = new Vector3(
+              Random.Range(bounds.min.x, bounds.max.x),
+              .151f,
+              Random.Range(bounds.min.z, bounds.max.z)
+            );
+        }
+      
 
         ball = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
         ball.transform.SetParent(spawnedComps);

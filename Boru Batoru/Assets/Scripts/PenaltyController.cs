@@ -47,7 +47,7 @@ public class PenaltyController : MonoBehaviour
         {
             hasBall = true;
             ball.transform.SetParent(transform);
-            ball.transform.localPosition = Vector3.up * 0.5f;
+            ball.transform.localPosition = new Vector3(0, .151f, .464f);
             agent.speed = 1f;
             target = GameObject.FindGameObjectWithTag("EnemyBase");
         }
