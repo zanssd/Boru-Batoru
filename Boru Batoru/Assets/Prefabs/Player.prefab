@@ -1658,6 +1658,7 @@ GameObject:
   - component: {fileID: 1139210967943754022}
   - component: {fileID: 1662900582523158774}
   - component: {fileID: 2709491540310184029}
+  - component: {fileID: 5617958499460139950}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1737,6 +1738,7 @@ MonoBehaviour:
   returnSpeed: 2
   detectionRange: 0
   defenderSpeed: 1
+  isRun: 0
   detectionCircle: {fileID: 4583448803092133065}
   detectionComp: {fileID: 6033346304075806372}
 --- !u!54 &1139210967943754022
@@ -1792,6 +1794,28 @@ MonoBehaviour:
   grayScale: {fileID: 2100000, guid: 618645dce5ac1264d94b1f7f61fb079a, type: 2}
   soldier: {fileID: 7265405701788445354}
   originMat: []
+--- !u!195 &5617958499460139950
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4049768619099455697}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &4091650439221565764
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,6 +17,8 @@ public class UIManager : MonoBehaviour
     public TMP_Text resultPlayerScoreText;
     public GameObject resultObj;
     public GameObject nextMatchBtnObj;
+    public GameObject endGameTxt;
+
 
     [Header("Enemy UI Ref")]
     public TMP_Text enemyTitle;
@@ -26,6 +28,8 @@ public class UIManager : MonoBehaviour
     public TMP_Text playerTitle;
     public TMP_Text playerScore;
 
+    [Header("Penalty Reference")]
+    public GameObject penaltyBtn;
     private void Start()
     {
         //DefineTitle();
@@ -47,7 +51,15 @@ public class UIManager : MonoBehaviour
 
         if (GameManager.Instance.timer <= 0)
         {
-            GameManager.Instance.MatchEnd("draw");
+           
+            if (GameManager.Instance.isPenalty)
+            {
+                GameManager.Instance.MatchEnd("defender");
+            }
+            else
+            {
+                GameManager.Instance.MatchEnd("draw");
+            }
         }
     }
 
@@ -59,11 +71,12 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
         GameManager.Instance.MatchBegin();
-        countdownObj.SetActive(false); // Sembunyikan setelah selesai
+        countdownObj.SetActive(false);
     }
 
     public void ShowResult(string result)
     {
+        GameManager.Instance.isStart = false;
         resultObj.SetActive(true);
         resultEnemyScoreText.text = GameManager.Instance.enemyWins.ToString();
         resultPlayerScoreText.text = GameManager.Instance.playerWins.ToString();
@@ -88,7 +101,18 @@ public class UIManager : MonoBehaviour
             resultMatchText.text = (GameManager.Instance.playerWins == GameManager.Instance.enemyWins)
                 ? "DRAW"
                 : (GameManager.Instance.playerWins > GameManager.Instance.enemyWins) ? "PLAYER WINNER" : "ENEMY WINNER";
+            endGameTxt.SetActive(GameManager.Instance.playerWins != GameManager.Instance.enemyWins);
+            penaltyBtn.SetActive(GameManager.Instance.playerWins == GameManager.Instance.enemyWins);
+            if (GameManager.Instance.isPenalty)
+            {
+                endGameTxt.GetComponent<TMP_Text>().text = "GAME OVER";
+            }
         }
+    }
+
+    public void MoveScene(string scene)
+    {
+        ScenesManager.instance.MoveScene(scene);
     }
 
 }

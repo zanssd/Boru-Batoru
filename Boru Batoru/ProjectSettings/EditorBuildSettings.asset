@@ -8,4 +8,25 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  m_configObjects: {}
+  - enabled: 0
+    path: Assets/Scenes/ARBattleScene.unity
+    guid: c42dee5584834a04fae21df3727b6e3c
+  - enabled: 1
+    path: Assets/Scenes/MainMenuScene.unity
+    guid: 1c315e4982cc3fb4c9dcb6c06fe1e251
+  - enabled: 1
+    path: Assets/Scenes/BattleScene.unity
+    guid: bf6d3a9bc159dfc4e8910fa960ccf0f0
+  - enabled: 1
+    path: Assets/Scenes/ARScene.unity
+    guid: 3cd8f5bb247fb1e4498fc6dc04661903
+  m_configObjects:
+    UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 820ec34aca16d904897fed9c1bd6e0c7,
+      type: 2}
+    UnityEditor.XR.ARKit.ARKitSettings: {fileID: 0}
+    com.unity.xr.arcore.PlayerSettings: {fileID: 11400000, guid: dce08eaf8c171c7439f8b951686cb7ca,
+      type: 2}
+    com.unity.xr.arkit.PlayerSettings: {fileID: 11400000, guid: cedeca08c832759438853981d8bf9cd2,
+      type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 7007a033db40a7941b8afd05e934a0ee,
+      type: 2}

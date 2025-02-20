@@ -92,7 +92,7 @@ public class Soldier : MonoBehaviour
         MeshCollider fieldCollider = field.GetComponent<MeshCollider>();
         if (fieldCollider != null)
         {
-            detectionRange = fieldCollider.bounds.size.x * 0.35f; // 35% dari lebar field
+            detectionRange = fieldCollider.bounds.size.x * 0.35f;
         }
     }
     public void SetBallReference(GameObject ballRef)
@@ -144,7 +144,6 @@ public class Soldier : MonoBehaviour
             ball.transform.localPosition = new Vector3(0, .151f, .464f);
             GameManager.Instance.ballHolder = this.gameObject;
         }
-        //directionIndicator.transform.rotation = Quaternion.LookRotation(transform.forward);
 
     }
 
@@ -165,7 +164,6 @@ public class Soldier : MonoBehaviour
             ballHighlight.SetActive(true);
         }
         directionIndicator.SetActive(true);
-        //directionIndicator.transform.rotation = Quaternion.LookRotation(transform.forward);
 
     }
     private void DetectAndChaseAttacker()
@@ -184,7 +182,6 @@ public class Soldier : MonoBehaviour
                 transform.position = Vector3.MoveTowards(transform.position, col.transform.position, defenderSpeed * Time.deltaTime);
                 directionIndicator.SetActive(true);
                 isRun = true;
-                //directionIndicator.transform.rotation = Quaternion.LookRotation(transform.forward);
             }
         }
     }
@@ -261,8 +258,6 @@ public class Soldier : MonoBehaviour
 
         if (hasBall && other.CompareTag("EnemyBase") || hasBall && other.CompareTag("PlayerBase"))
         {
-            Debug.Log("GOAL! Game Over.");
-            //GameManager.Instance.MatchEnd
             GameManager.Instance.MatchEnd("attacker");
 
         }

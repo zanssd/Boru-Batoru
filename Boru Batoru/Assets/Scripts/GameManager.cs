@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     public bool isPlayerAttacking = false;
     public float spawnTime;
     public bool isStart;
+    public bool isPenalty;
     public int roundMatch;
 
     public GameObject playerField;
@@ -30,17 +31,20 @@ public class GameManager : MonoBehaviour
     public List<EnergyBar> enemyEnergy = new List<EnergyBar>();
     public List<EnergyBar> playerEnergy = new List<EnergyBar>();
 
+    [Header("Penalty Reference")]
+    [SerializeField]
+    private PenaltyManager penaltyManager;
+    [SerializeField]
+    private GameObject penaltyPlayer;
+    [SerializeField]
+    private SpawnManager spawnManager;
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
         }
-    }
-
-    private void Start()
-    {
-        //MatchBegin();
     }
 
     public void MatchBegin()
@@ -155,4 +159,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void GoPenalty()
+    {
+        isPenalty = true;
+        isPlayerAttacking = true;
+        isStart = true;
+        timer = matchTime;
+        penaltyManager.enabled = true;
+        penaltyPlayer.SetActive(true);
+        spawnManager.enabled = false;
+        DestroyComp();
+    }
 }
